@@ -71,7 +71,21 @@ void action() {
     if (ui.hold()) {
       if (ui.clickDown("set")) 
       { 
-        write_new_setting(&d_wifi);      
+        ui.clickStr("wifi", d_wifi.wifi);
+        ui.clickStr("password", d_wifi.pass);
+        ui.clickStr("server", d_wifi.server);
+        ui.clickStr("token", d_wifi.token);
+        ui.clickStr("pass", d_wifi.pass_route);
+        ui.clickStr("ip", d_wifi.ip);
+        
+        Serial.println("Wifi " + String(d_wifi.wifi));
+        Serial.println("password AP " + String(d_wifi.pass));
+        Serial.println("server " + String(d_wifi.server));
+        Serial.println("token " + String(d_wifi.token));
+        Serial.println("pass " + String(d_wifi.pass_route));
+        Serial.println("ip " + String(d_wifi.ip));
+        write_new_setting(&d_wifi);  
+            
         flag_data = 1;
       }
   }

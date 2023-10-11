@@ -96,7 +96,7 @@ void write_new_setting(data_wifi * d_w)
     write_token(d_w->token);
   
   if(strlen(d_w->pass_route) > 0) 
-    write_token(d_w->pass_route);
+    write_pass_route(d_w->pass_route);
 
   if(strlen(d_w->ip) > 0) 
     write_ip(d_w->ip);
