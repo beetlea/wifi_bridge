@@ -6,7 +6,8 @@ char * default_server = "http://45.141.101.38/web/api/data-incom";
 char * default_wifi   = "ESP32";
 char * default_pass   = "00000000";
 char * default_token  = "Z5W2Doip3HsyIDYei8qol2uh_CXp-g5W";
-char * dafault_pass_r = "1234567890b";
+char * dafault_name_r = "wifi";
+char * dafault_pass_r = "1234567890";
 char * dafault_ip     = "192.168.4.1";
 #define OK         1
 #define ERROR      0
@@ -59,6 +60,17 @@ void init_mem(data_wifi * d_w)
     }
   }
 
+
+  if(!read_name_route(d_w->name_route))
+  {
+    write_name_route(dafault_name_r);
+    
+    for(int i = 0; i < strlen(dafault_name_r); i++)
+    {
+      d_w->name_route[i] = dafault_name_r[i];
+    }
+  }
+
   if(!read_pass_route(d_w->pass_route))
   {
     write_pass_route(dafault_pass_r);
@@ -94,7 +106,10 @@ void write_new_setting(data_wifi * d_w)
 
   if(strlen(d_w->token) > 0) 
     write_token(d_w->token);
-  
+
+  if(strlen(d_w->name_route) > 0) 
+    write_name_route(d_w->name_route);
+
   if(strlen(d_w->pass_route) > 0) 
     write_pass_route(d_w->pass_route);
 
@@ -154,6 +169,29 @@ int write_ip(char * str)
 int write_pass(char * str)
 {
   File file = SPIFFS.open("/pass.txt", FILE_WRITE);
+  if(!file){
+    Serial.println("Failed to open file for reading");
+    return ERROR;
+  }
+  if (!file) {
+    Serial.println("There was an error opening the file for writing");
+    return ERROR;
+  }
+  if (file.print(str)) {
+    Serial.println("File was written");
+  } else {
+    Serial.println("File write failed");
+  }
+ 
+  file.close();
+
+  return OK;
+}
+
+
+int write_name_route(char * str)
+{
+  File file = SPIFFS.open("/name_route.txt", FILE_WRITE);
   if(!file){
     Serial.println("Failed to open file for reading");
     return ERROR;
@@ -326,6 +364,27 @@ int read_wifi(char * str)
   return cnt_byte;
 }
 
+int read_name_route(char * str)
+{
+  File file = SPIFFS.open("/name_route.txt", FILE_READ);
+  if(!file){
+    Serial.println("Failed to open file for reading");
+    return ERROR;
+  }
+
+  Serial.println("File Content:");
+  int cnt_byte = 0;
+  while(file.available()){
+    
+    str[cnt_byte] = file.read();
+    Serial.write(str[cnt_byte]);
+    cnt_byte++;
+  }
+  Serial.println();
+  str[cnt_byte] = '\0';
+  file.close();
+  return cnt_byte;
+}
 
 int read_pass_route(char * str)
 {

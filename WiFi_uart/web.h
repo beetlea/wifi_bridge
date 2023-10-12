@@ -5,6 +5,7 @@ struct data_wifi{
   char pass[100];
   char server[100];
   char token[100];
+  char name_route[100];
   char pass_route[100];
   char ip[100];
 };

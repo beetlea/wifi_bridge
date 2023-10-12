@@ -23,8 +23,9 @@ void init_web()
 void build(void) {
 
   GP.BUILD_BEGIN(GP_DARK);
-  GP.PAGE_TITLE("WI-FI BRIDGE");  
+  GP.PAGE_TITLE("WI-FI BRIDGE"); 
 
+  GP.FORM_BEGIN("/update");
   GP.LABEL("WIFI_AP"); 
   GP.TEXT("wifi", "", d_wifi.wifi);  
   GP.BREAK();
@@ -41,6 +42,10 @@ void build(void) {
   GP.TEXT("token", "", d_wifi.token); 
   GP.BREAK();
 
+  GP.LABEL("NAME_R"); 
+  GP.TEXT("name_r", "", d_wifi.name_route); 
+  GP.BREAK();
+
   GP.LABEL("PASS_R"); 
   GP.TEXT("pass", "", d_wifi.pass_route); 
   GP.BREAK();
@@ -49,7 +54,7 @@ void build(void) {
   GP.TEXT("ip", "", d_wifi.ip); 
   GP.BREAK();
 
-  GP.BUTTON("set", "Установить"); 
+  GP.SUBMIT("Сохранить");
   
   GP.BUILD_END();
 
@@ -58,30 +63,22 @@ void build(void) {
 
 
 void action() {
-  if(ui.click())
-  {
-    ui.clickStr("wifi", d_wifi.wifi);
-    ui.clickStr("password", d_wifi.pass);
-    ui.clickStr("server", d_wifi.server);
-    ui.clickStr("token", d_wifi.token);
-    ui.clickStr("pass", d_wifi.pass_route);
-    ui.clickStr("ip", d_wifi.ip);
-  }
-
-    if (ui.hold()) {
-      if (ui.clickDown("set")) 
-      { 
-        ui.clickStr("wifi", d_wifi.wifi);
-        ui.clickStr("password", d_wifi.pass);
-        ui.clickStr("server", d_wifi.server);
-        ui.clickStr("token", d_wifi.token);
-        ui.clickStr("pass", d_wifi.pass_route);
-        ui.clickStr("ip", d_wifi.ip);
+  if (ui.form()) {
+    // проверяем, была ли это форма "/update"
+    if (ui.form("/update")) {
+        ui.copyStr("wifi", d_wifi.wifi);
+        ui.copyStr("password", d_wifi.pass);
+        ui.copyStr("server", d_wifi.server);
+        ui.copyStr("token", d_wifi.token);
+        ui.copyStr("name_r", d_wifi.name_route);
+        ui.copyStr("pass", d_wifi.pass_route);
+        ui.copyStr("ip", d_wifi.ip);
         
         Serial.println("Wifi " + String(d_wifi.wifi));
         Serial.println("password AP " + String(d_wifi.pass));
         Serial.println("server " + String(d_wifi.server));
         Serial.println("token " + String(d_wifi.token));
+        Serial.println("name_r " + String(d_wifi.name_route));
         Serial.println("pass " + String(d_wifi.pass_route));
         Serial.println("ip " + String(d_wifi.ip));
         write_new_setting(&d_wifi);  

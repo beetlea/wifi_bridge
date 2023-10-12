@@ -3,24 +3,17 @@
 #include "post.h"
 #include "web.h"
 #include "mem.h"
-
+#include <HardwareSerial.h>
 
 #define TIMEOUT  22
 
-int reset_time = 20000;
-///int reset_time = 86400000;////сутки
+///int reset_time = 20000;
+int reset_time = 86400000;////сутки
 
-String server = "http://45.141.101.38/web/api/data-incom?token=Z5W2Doip3HsyIDYei8qol2uh_CXp-g5W";
-String send_string = "&DataTypes_id=1&Nodes_id=65535&GPIO_id=0&rssi=-94&snr=5&Station_id=1&ResetCount=0";
+HardwareSerial Ser2(2);
 
-static const char* ssid = "iPhone (Антон)";
-static const char* password = "1234567890b";
-
-static const char* ssid_AP = "ESP32";
-static const char* password_AP = "00000000";
-
-static data_wifi d_w;
-
+static data_wifi   d_w;
+static data_parser d_p;
 
 
 void set_ip(String ip_)
@@ -44,7 +37,7 @@ void init_wifi() {
   Serial.println(d_w.server);
   Serial.println(d_w.token);
 
-  WiFi.begin(ssid, d_w.pass_route);
+  WiFi.begin(d_w.name_route, d_w.pass_route);
   Serial.println("Connecting");
   int cnt_connect = 0;
   while(WiFi.status() != WL_CONNECTED) {
@@ -53,13 +46,15 @@ void init_wifi() {
     cnt_connect++;
     if(cnt_connect == TIMEOUT * 2)
     {
-        Serial.print("Setting AP (Access Point)…");
+        Serial.print("\nSetting AP (Access Point)…");
         // Remove the password parameter, if you want the AP (Access Point) to be open
         WiFi.softAP(d_w.wifi, d_w.pass);
 
         IPAddress IP = WiFi.softAPIP();
         Serial.print("AP IP address: ");
         Serial.println(IP);
+        Serial.println("WiFi  = " + String(d_w.wifi));
+        Serial.println("PASS = " + String(d_w.pass));
         break;
     }
   }
@@ -70,27 +65,40 @@ void init_wifi() {
     Serial.println("");
     Serial.print("Connected to WiFi network with IP Address: ");
     Serial.println(WiFi.localIP());
+    Serial.println("WiFi  = " + String(d_w.name_route));
+    Serial.println("PASS = " + String(d_w.pass_route));
   }
  }
 
+void IRAM_ATTR serialEventRun(){
+  while(Ser2.available())
+  {
+    char data = Ser2.read();
+    d_p.input += (char)data;  
+  }
+
+}
 
 void setup() {
   init_wifi();
-  Serial2.begin(19200); 
+  Ser2.begin(19200,SERIAL_8N1, 16, 17 ); 
+  Ser2.onReceive(&serialEventRun);
   init_web();
 }
 
 
 
 void loop() {
-  if(Serial2.available())
+
+
+  if(parser(&d_p) != 0)
   {
-    Serial.print("data_recieve ");
-    String data;
-    data = Serial2.readString();
-    Serial.println(data);
+
+    String data_send = build_query(&d_p);
+
     int cnt_attempt = 10;
-    while(!send_post(d_w.server, d_w.token, "data=" + data + send_string))
+
+    while(!send_post(d_w.server, d_w.token, data_send))
     {
       if(!cnt_attempt)
       {
@@ -105,6 +113,5 @@ void loop() {
   {
     ESP.restart();
   }
-  
   tick();
 }
